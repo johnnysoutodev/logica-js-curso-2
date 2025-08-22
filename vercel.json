@@ -18,7 +18,6 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist",
-  "nodeVersion": "22.x",
   "headers": [
     {
       "source": "/(.*)",
