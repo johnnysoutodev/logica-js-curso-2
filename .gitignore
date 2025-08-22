@@ -142,7 +142,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Build directory
-dist/
+# dist/
 
 # Vercel
 .vercel
