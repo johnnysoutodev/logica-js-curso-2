@@ -3,6 +3,8 @@ let numeroLimite = 100;
 let paragrafoComNumeroLimite = `Escolha um número entre 1 e ${numeroLimite}`;
 let numeroSecreto = gerarNumeroAleatorio();
 let tentativas = 1;
+let tipoVoz = responsiveVoice.setDefaultVoice('Brazilian Portuguese Female');
+let tempoVoz = responsiveVoice.setDefaultRate(1.1);
 
 // Função exclusivamente para exibir uma mensagem inicial
 function exibirMensagemInicial() {
@@ -12,10 +14,23 @@ function exibirMensagemInicial() {
 
 exibirMensagemInicial();
 
+// Função para validar suporte à API de voz
+function validarSuporteVoz() {
+    return responsiveVoice.voiceSupport() ? true : (console.log("ResponsiveVoice Speech API não suportada neste navegador."), false);
+}
+
+// Função para falar texto usando ResponsiveVoice
+function falarTexto(texto) {
+    if (validarSuporteVoz()) {
+        responsiveVoice.speak(texto, tipoVoz, {rate: tempoVoz});
+    }
+}
+
 // Função com parametros e sem retorno
 function setTexto(tag, texto){
     let campo = document.querySelector(tag);
     campo.innerHTML = texto;
+    falarTexto(texto)
 }
 
 // Função sem parametros
