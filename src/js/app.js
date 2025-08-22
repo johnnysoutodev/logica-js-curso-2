@@ -1,6 +1,14 @@
 let numeroSecreto = gerarNumeroAleatorio();
 let tentativas = 1;
 
+// Função exclusivamente para exibir uma mensagem inicial
+function exibirMensagemInicial() {
+    setTexto('h1', 'Jogo do número secreto');
+    setTexto('p', 'Escolha um número entre 1 e 10');
+}
+
+exibirMensagemInicial();
+
 // Função com parametros e sem retorno
 function setTexto(tag, texto){
     let campo = document.querySelector(tag);
@@ -39,5 +47,11 @@ function limparCampo() {
     chute.value = '';
 }
 
-setTexto('h1', 'Jogo do número secreto');
-setTexto('p', 'Escolha um número entre 1 e 10');
+// Função reiniciarJogo para poder jogar novamente
+function reiniciarJogo() {
+    numeroSecreto = gerarNumeroAleatorio();
+    limparCampo();
+    tentativas = 1;
+    document.getElementById('reiniciar').setAttribute('disabled', 'true');
+    exibirMensagemInicial()
+}
