@@ -23,12 +23,19 @@ function verificarChute() {
             setTexto('p', 'Você errou. O número secreto é maior.');
         }
         tentativas++;
+        limparCampo();
     }
 }
 
 // Função que retorna um valor
 function gerarNumeroAleatorio(){
     return parseInt(Math.floor(Math.random() * 10) + 1);
+}
+
+// Função para limpar campo de entrada
+function limparCampo() {
+    chute = document.querySelector('input');
+    chute.value = '';
 }
 
 setTexto('h1', 'Jogo do número secreto');
