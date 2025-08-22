@@ -1,4 +1,5 @@
 let numeroSecreto = gerarNumeroAleatorio();
+let tentativas = 1;
 
 // Função com parametros e sem retorno
 function setTexto(tag, texto){
@@ -12,13 +13,16 @@ function verificarChute() {
 
     if (chute == numeroSecreto) {
         setTexto('h1', 'Parabéns!');
-        setTexto('p', 'Você acertou o número secreto!');
+        let palavraTentativa = tentativas > 1 ? 'tentativas' : 'tentativa';
+        let mensagemTentativas = `Você acertou o número secreto com ${tentativas} ${palavraTentativa}!`;
+        setTexto('p', mensagemTentativas);
     } else {
         if(chute > numeroSecreto){
             setTexto('p', 'Você errou. O número secreto é menor.');
         } else {
             setTexto('p', 'Você errou. O número secreto é maior.');
         }
+        tentativas++;
     }
 }
 
