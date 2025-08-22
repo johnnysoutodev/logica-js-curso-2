@@ -16,6 +16,7 @@ function verificarChute() {
         let palavraTentativa = tentativas > 1 ? 'tentativas' : 'tentativa';
         let mensagemTentativas = `Você acertou o número secreto com ${tentativas} ${palavraTentativa}!`;
         setTexto('p', mensagemTentativas);
+        document.getElementById('reiniciar').removeAttribute('disabled');
     } else {
         if(chute > numeroSecreto){
             setTexto('p', 'Você errou. O número secreto é menor.');
