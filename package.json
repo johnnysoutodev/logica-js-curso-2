@@ -21,7 +21,7 @@
     "prebuild": "npm run clean"
   },
   "devDependencies": {
-    "html-minifier": "^4.0.0",
+    "html-minifier-terser": "^7.2.0",
     "clean-css": "^5.3.2",
     "terser": "^5.19.4",
     "rimraf": "^5.0.5",
