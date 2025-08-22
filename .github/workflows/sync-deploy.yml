@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}  # ✅ Mudança aqui!
 
       - name: 🔄 Configure Git
         run: |
@@ -26,20 +26,24 @@ jobs:
 
       - name: 🌿 Create and sync deploy branch
         run: |
+          # Busca todas as branches remotas
+          git fetch origin
+          
           # Verifica se a branch deploy já existe remotamente
           if git ls-remote --heads origin deploy | grep -q deploy; then
             echo "Branch deploy existe, fazendo checkout..."
-            git checkout deploy
-            git merge origin/develop --no-ff -m "chore: sync develop to deploy"
+            git checkout -B deploy origin/deploy
+            git merge origin/develop --no-ff -m "chore: sync develop to deploy [trigger-deploy]"
           else
             echo "Branch deploy não existe, criando..."
-            git checkout -b deploy
+            git checkout -b deploy origin/develop
           fi
           
-          # Push da branch deploy
+          # Push da branch deploy (isso irá trigger o deploy.yml)
           git push origin deploy
       
       - name: 🔍 Verify deploy branch
         run: |
           echo "Branch deploy criada/atualizada com sucesso!"
+          echo "Deploy workflow será acionado automaticamente..."
           git branch -a
