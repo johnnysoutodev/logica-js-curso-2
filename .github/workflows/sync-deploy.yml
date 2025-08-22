@@ -2,7 +2,7 @@ name: Sync Develop to Deploy
 
 permissions:
   contents: write
-  actions: write  # Adiciona permissão para trigger workflows
+  actions: write
 
 on:
   push:
@@ -24,18 +24,22 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-      - name: 🌿 Switch to deploy branch
+      - name: 🌿 Create and sync deploy branch
         run: |
-          # Busca todas as branches
-          git fetch origin
+          # Verifica se a branch deploy já existe remotamente
+          if git ls-remote --heads origin deploy | grep -q deploy; then
+            echo "Branch deploy existe, fazendo checkout..."
+            git checkout deploy
+            git merge origin/develop --no-ff -m "chore: sync develop to deploy"
+          else
+            echo "Branch deploy não existe, criando..."
+            git checkout -b deploy
+          fi
           
-          # Cria branch deploy se não existir
-          git checkout -B deploy origin/develop
-          
-          # Push da branch deploy (força o trigger)
-          git push origin deploy --force-with-lease
+          # Push da branch deploy
+          git push origin deploy
       
-      - name: 🔍 Trigger Deploy Workflow
+      - name: 🔍 Verify deploy branch
         run: |
-          echo "Branch deploy atualizada com sucesso!"
-          echo "Verificando se deploy.yml será acionado..."
+          echo "Branch deploy criada/atualizada com sucesso!"
+          git branch -a
