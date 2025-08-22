@@ -15,8 +15,6 @@
       "dest": "/index.html"
     }
   ],
-  "functions": {},
-  "framework": null,
   "installCommand": "npm ci",
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist",
