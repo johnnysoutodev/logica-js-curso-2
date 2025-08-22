@@ -13,8 +13,18 @@
   "license": "MIT",
   "author": "Johnny Souto",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "src/index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node build.js",
+    "dev": "live-server src",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean"
+  },
+  "devDependencies": {
+    "html-minifier": "^4.0.0",
+    "clean-css": "^5.3.2",
+    "terser": "^5.19.4",
+    "rimraf": "^5.0.5",
+    "fs-extra": "^11.1.1"
   }
 }
