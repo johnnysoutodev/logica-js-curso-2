@@ -16,7 +16,7 @@
   "main": "src/index.html",
   "scripts": {
     "build": "node build.js",
-    "vercel-build": "npm run build",
+    "vercel-build": "npm run build --output dist",
     "dev": "live-server src",
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
