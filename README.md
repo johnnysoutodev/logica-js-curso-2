@@ -1,1 +1,1 @@
-# logica-js-curso-2
+# jogo-numero-secreto_by-one
