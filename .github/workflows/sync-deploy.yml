@@ -2,6 +2,7 @@ name: Sync Develop to Deploy
 
 permissions:
   contents: write
+  actions: write  # Adiciona permissão para trigger workflows
 
 on:
   push:
@@ -25,11 +26,16 @@ jobs:
 
       - name: 🌿 Switch to deploy branch
         run: |
+          # Busca todas as branches
+          git fetch origin
+          
           # Cria branch deploy se não existir
-          git checkout -B deploy
+          git checkout -B deploy origin/develop
           
-          # Faz merge das mudanças do develop
-          git merge origin/develop --no-ff -m "chore: sync develop to deploy"
-          
-          # Push da branch deploy
-          git push origin deploy
+          # Push da branch deploy (força o trigger)
+          git push origin deploy --force-with-lease
+      
+      - name: 🔍 Trigger Deploy Workflow
+        run: |
+          echo "Branch deploy atualizada com sucesso!"
+          echo "Verificando se deploy.yml será acionado..."
