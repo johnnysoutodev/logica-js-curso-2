@@ -38,6 +38,9 @@ bower_components
 build/Release
 
 # Dependency directories
+ 
+# Ignorar arquivos do macOS
+.DS_Store
 node_modules/
 jspm_packages/
 
