@@ -3,24 +3,79 @@ const path = require('path');
 const { minify: minifyHTML } = require('html-minifier-terser');
 const CleanCSS = require('clean-css');
 const { minify: minifyJS } = require('terser');
+const sharp = require('sharp');
 
-(async () => {
+const srcDir = './src';
+const distDir = './dist';
+
+async function build() {
     try {
-        const srcDir = 'src';
-        const distDir = 'dist';
-
-        // Cria o diretório de destino se não existir
+        console.log('🚀 Iniciando build...');
+        
+        // 1. Limpa o diretório dist
+        console.log('🧹 Limpando diretório dist...');
+        await fs.remove(distDir);
         await fs.ensureDir(distDir);
-
-        // Copia os arquivos estáticos
-        console.log('📂 Copiando arquivos estáticos...');
-        await fs.copy(srcDir, distDir, {
-            filter: (file) => !file.endsWith('.html') // Ignora arquivos HTML, pois serão minificados separadamente
-        });
-
-        // Minifica HTML
+        
+        // 2. Copia e otimiza imagens
+        console.log('📁 Otimizando imagens...');
+        const imgSrcPath = path.join(srcDir, 'img');
+        const imgDistPath = path.join(distDir, 'img');
+        
+        if (await fs.pathExists(imgSrcPath)) {
+            await fs.ensureDir(imgDistPath);
+            await optimizeImages(imgSrcPath, imgDistPath);
+        }
+        
+        // 3. Minifica CSS
+        console.log('🎨 Minificando CSS...');
+        const cssSrcPath = path.join(srcDir, 'css', 'style.css');
+        const cssDistPath = path.join(distDir, 'css', 'style.css');
+        
+        if (await fs.pathExists(cssSrcPath)) {
+            const cssContent = await fs.readFile(cssSrcPath, 'utf8');
+            const minifiedCSS = new CleanCSS({ 
+                level: 2,
+                returnPromise: false 
+            }).minify(cssContent);
+            
+            await fs.ensureDir(path.join(distDir, 'css'));
+            await fs.writeFile(cssDistPath, minifiedCSS.styles);
+            
+            console.log(`   ✅ CSS: ${cssContent.length} → ${minifiedCSS.styles.length} bytes`);
+        }
+        
+        // 4. Minifica JavaScript
+        console.log('⚡ Minificando JavaScript...');
+        const jsSrcPath = path.join(srcDir, 'js', 'app.js');
+        const jsDistPath = path.join(distDir, 'js', 'app.js');
+        
+        if (await fs.pathExists(jsSrcPath)) {
+            const jsContent = await fs.readFile(jsSrcPath, 'utf8');
+            const minifiedJS = await minifyJS(jsContent, {
+                compress: {
+                    drop_console: true,
+                    drop_debugger: true,
+                    dead_code: true
+                },
+                mangle: true,
+                format: {
+                    comments: false
+                }
+            });
+            
+            await fs.ensureDir(path.join(distDir, 'js'));
+            await fs.writeFile(jsDistPath, minifiedJS.code);
+            
+            console.log(`   ✅ JS: ${jsContent.length} → ${minifiedJS.code.length} bytes`);
+        }
+        
+        // 5. Minifica HTML
         console.log('📄 Minificando HTML...');
-        const htmlContent = await fs.readFile(path.join(srcDir, 'index.html'), 'utf8');
+        const htmlSrcPath = path.join(srcDir, 'index.html');
+        const htmlDistPath = path.join(distDir, 'index.html');
+        
+        const htmlContent = await fs.readFile(htmlSrcPath, 'utf8');
         const minifiedHTML = await minifyHTML(htmlContent, {
             removeComments: true,
             collapseWhitespace: true,
@@ -31,40 +86,112 @@ const { minify: minifyJS } = require('terser');
             keepClosingSlash: true,
             minifyJS: true,
             minifyCSS: true,
-            minifyURLs: true
+            minifyURLs: true,
+            removeAttributeQuotes: true,
+            removeOptionalTags: true
         });
-        await fs.writeFile(path.join(distDir, 'index.html'), minifiedHTML);
-
-        // Minifica CSS
-        console.log('🎨 Minificando CSS...');
-        const cssFiles = await fs.readdir(distDir);
-        await Promise.all(
-            cssFiles
-                .filter((file) => file.endsWith('.css'))
-                .map(async (file) => {
-                    const filePath = path.join(distDir, file);
-                    const fileContent = await fs.readFile(filePath, 'utf8');
-                    const minifiedCSS = new CleanCSS().minify(fileContent).styles;
-                    await fs.writeFile(filePath, minifiedCSS);
-                })
-        );
-
-        // Minifica JavaScript
-        console.log('📦 Minificando JavaScript...');
-        const jsFiles = await fs.readdir(distDir);
-        await Promise.all(
-            jsFiles
-                .filter((file) => file.endsWith('.js'))
-                .map(async (file) => {
-                    const filePath = path.join(distDir, file);
-                    const fileContent = await fs.readFile(filePath, 'utf8');
-                    const { code: minifiedJS } = await minifyJS(fileContent);
-                    await fs.writeFile(filePath, minifiedJS);
-                })
-        );
-
+        
+        await fs.writeFile(htmlDistPath, minifiedHTML);
+        console.log(`   ✅ HTML: ${htmlContent.length} → ${minifiedHTML.length} bytes`);
+        
+        // 6. Relatório final
+        console.log('\n📊 Relatório do Build:');
+        const distStats = await getDirStats(distDir);
+        console.log(`   📦 Arquivos gerados: ${distStats.files}`);
+        console.log(`   💾 Tamanho total: ${(distStats.size / 1024).toFixed(2)} KB`);
         console.log('✅ Build concluído com sucesso!');
+        
     } catch (error) {
-        console.error('❌ Ocorreu um erro durante o build:', error);
+        console.error('❌ Erro durante o build:', error);
+        process.exit(1);
     }
-})();
+}
+
+// Função auxiliar para estatísticas
+async function getDirStats(dir) {
+    let files = 0;
+    let size = 0;
+    
+    async function traverse(currentDir) {
+        const items = await fs.readdir(currentDir);
+        
+        for (const item of items) {
+            const fullPath = path.join(currentDir, item);
+            const stats = await fs.stat(fullPath);
+            
+            if (stats.isDirectory()) {
+                await traverse(fullPath);
+            } else {
+                files++;
+                size += stats.size;
+            }
+        }
+    }
+    
+    await traverse(dir);
+    return { files, size };
+}
+
+// Função para otimizar imagens
+async function optimizeImages(srcPath, distPath) {
+    const files = await fs.readdir(srcPath);
+    let totalOriginal = 0;
+    let totalOptimized = 0;
+    
+    for (const file of files) {
+        const srcFile = path.join(srcPath, file);
+        const distFile = path.join(distPath, file);
+        const stats = await fs.stat(srcFile);
+        
+        if (stats.isDirectory()) {
+            await fs.ensureDir(distFile);
+            await optimizeImages(srcFile, distFile);
+            continue;
+        }
+        
+        const ext = path.extname(file).toLowerCase();
+        totalOriginal += stats.size;
+        
+        try {
+            if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
+                // Otimiza imagens com Sharp
+                await sharp(srcFile)
+                    .jpeg({ quality: 85, progressive: true })
+                    .png({ compressionLevel: 9, quality: 85 })
+                    .webp({ quality: 85 })
+                    .toFile(distFile);
+                
+                const optimizedStats = await fs.stat(distFile);
+                totalOptimized += optimizedStats.size;
+                
+                const reduction = ((stats.size - optimizedStats.size) / stats.size * 100).toFixed(1);
+                console.log(`   ✅ ${file}: ${stats.size} → ${optimizedStats.size} bytes (-${reduction}%)`);
+                
+            } else if (['.svg'].includes(ext)) {
+                // Para SVG, apenas copia (ou use svgo se quiser otimizar)
+                await fs.copy(srcFile, distFile);
+                totalOptimized += stats.size;
+                console.log(`   📄 ${file}: copiado (SVG)`);
+                
+            } else {
+                // Outros arquivos, apenas copia
+                await fs.copy(srcFile, distFile);
+                totalOptimized += stats.size;
+                console.log(`   📄 ${file}: copiado`);
+            }
+            
+        } catch (error) {
+            console.log(`   ⚠️  ${file}: erro na otimização, copiando original`);
+            await fs.copy(srcFile, distFile);
+            totalOptimized += stats.size;
+        }
+    }
+    
+    if (totalOriginal > 0) {
+        const totalReduction = ((totalOriginal - totalOptimized) / totalOriginal * 100).toFixed(1);
+        console.log(`   📊 Total de imagens: ${totalOriginal} → ${totalOptimized} bytes (-${totalReduction}%)`);
+    }
+}
+
+// Executar build
+build();
