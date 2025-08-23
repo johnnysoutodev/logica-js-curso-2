@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
@@ -22,7 +22,17 @@
                     <h1></h1>
                     <p class="texto__paragrafo"></p>
                 </div>
-                <input type="number" min="1" max="10" class="container__input">
+                <input 
+                    type="number" 
+                    min="1" 
+                    max="10" 
+                    class="container__input"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="Digite um número entre 1 e 10"
+                    autocomplete="off"
+                    aria-label="Digite seu palpite do número secreto"
+                >
                 <div class="chute container__botoes">
                     <button onclick="verificarChute()" class="container__botao">Chutar</button>
                     <button onclick="reiniciarJogo()" id="reiniciar" class="container__botao" disabled>Novo jogo</button>
