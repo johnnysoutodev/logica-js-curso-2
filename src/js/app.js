@@ -86,3 +86,22 @@ function reiniciarJogo() {
     document.getElementById('reiniciar').setAttribute('disabled', 'true');
     exibirMensagemInicial()
 }
+
+// ✅ APENAS VALIDAÇÃO SIMPLES - Adicionada no final
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.querySelector('input');
+    
+    if (input) {
+        // Remove apenas caracteres não numéricos durante a digitação
+        input.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Permite Enter para chutar
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verificarChute();
+            }
+        });
+    }
+});
